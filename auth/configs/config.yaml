@@ -1,0 +1,12 @@
+api:
+  bind-address: 0.0.0.0
+  bind-port: 8080
+  prefix: /
+
+database:
+  driver: mariadb
+  host: localhost
+  port: 3306
+  dbname: gascloud-auth
+  user: gascloud-auth
+  pass: P@ssw0rd
