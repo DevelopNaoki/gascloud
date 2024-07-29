@@ -1,6 +1,9 @@
 package config
 
-import ()
+import (
+	"github.com/DevelopNaoki/gascloud/auth/internal/model"
+)
 
-func VerificationConfigs() {
+func VerificationConfigs(config model.Config) error {
+	return nil
 }
