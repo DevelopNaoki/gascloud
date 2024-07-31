@@ -8,8 +8,6 @@ import (
 )
 
 func VerificationConfigs(config model.Config) (err error) {
-	err = fmt.Errorf("")
-
 	// APIConfig
 	// - Address
 	if config.API.Address == "" {
