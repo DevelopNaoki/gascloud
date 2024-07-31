@@ -3,9 +3,13 @@ package main
 import (
 	"fmt"
 	"os"
+	"strconv"
 
 	"github.com/DevelopNaoki/gascloud/auth/internal/config"
 	"github.com/spf13/cobra"
+
+	"github.com/labstack/echo"
+	"github.com/labstack/echo/middleware"
 )
 
 var confpath string
@@ -13,11 +17,18 @@ var RootCmd = &cobra.Command{
 	Use:   "gascloud-auth",
 	Short: "gascloud authorized api server",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		config, err := config.LoadConfigFile(confpath)
+		c, err := config.LoadConfigFile(confpath)
 		if err != nil {
 			return err
 		}
-		fmt.Printf("%v\n", config)
+
+		e := echo.New()
+
+		e.Use(middleware.Logger())
+		e.Use(middleware.Recover())
+
+		e.Logger.Fatal(e.Start(c.API.Address + ":" + strconv.Itoa(c.API.Port)))
+
 		return nil
 	},
 }
@@ -30,7 +41,6 @@ func main() {
 }
 
 func init() {
-	// Initializing cobra and setting commands
 	cobra.OnInitialize()
-	RootCmd.Flags().StringVarP(&confpath, "config-file", "c", "", "Specify Config File Path")
+	RootCmd.Flags().StringVarP(&confpath, "config", "c", "", "Specify Config File Path")
 }
