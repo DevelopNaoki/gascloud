@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/DevelopNaoki/gascloud/auth/internal/config"
+	"github.com/DevelopNaoki/gascloud/auth/internal/repository"
 	"github.com/spf13/cobra"
 
 	"github.com/labstack/echo"
@@ -21,6 +22,12 @@ var RootCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
+
+		db, err := repository.ConnectionDB(c.DB)
+		if err != nil {
+			return err
+		}
+		fmt.Printf("%v", db)
 
 		e := echo.New()
 
