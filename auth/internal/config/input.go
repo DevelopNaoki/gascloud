@@ -8,9 +8,11 @@ import (
 	"github.com/DevelopNaoki/gascloud/auth/internal/model"
 )
 
-func LoadConfigFile(path string) (config model.Config, _ error) {
+func LoadConfigFile(path string) (config model.Config, err error) {
+	var f []byte
+
 	// Open
-	f, err := os.ReadFile(path)
+	f, err = os.ReadFile(path)
 	if err != nil {
 		return config, err
 	}
@@ -26,6 +28,6 @@ func LoadConfigFile(path string) (config model.Config, _ error) {
 	if err != nil {
 		return config, err
 	}
-	
+
 	return config, nil
 }
