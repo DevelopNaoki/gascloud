@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"net"
+	"strings"
 
 	"github.com/DevelopNaoki/gascloud/auth/internal/model"
 )
@@ -24,7 +25,7 @@ func VerificationConfigs(config model.Config) (err error) {
 	// - Prefix
 	if config.API.Prefix == "" {
 		config.API.Prefix = "/"
-	} else if config.API.Prefix[:1] != "/" {
+	} else if !strings.HasPrefix(config.API.Prefix, "/") || !strings.HasSuffix(config.API.Prefix, "/") {
 		err = fmt.Errorf("%s, api: invalid prefix", err.Error())
 	}
 
