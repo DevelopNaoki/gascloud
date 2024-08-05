@@ -38,7 +38,8 @@ var RootCmd = &cobra.Command{
 		e.Use(middleware.Logger())
 		e.Use(middleware.Recover())
 
-		e.GET(c.API.Prefix+"account/login", conn.Login)
+		api := e.Group(c.API.Prefix)
+		api.GET("/account/login", conn.Login)
 
 		e.Logger.Fatal(e.Start(c.API.Address + ":" + strconv.Itoa(c.API.Port)))
 

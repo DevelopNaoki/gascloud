@@ -25,7 +25,7 @@ func VerificationConfigs(config model.Config) (err error) {
 	// - Prefix
 	if config.API.Prefix == "" {
 		config.API.Prefix = "/"
-	} else if !strings.HasPrefix(config.API.Prefix, "/") || !strings.HasSuffix(config.API.Prefix, "/") {
+	} else if !strings.HasPrefix(config.API.Prefix, "/") || strings.HasSuffix(config.API.Prefix, "/") {
 		err = fmt.Errorf("%s, api: invalid prefix", err.Error())
 	}
 
