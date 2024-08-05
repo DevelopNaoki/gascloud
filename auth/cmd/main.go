@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/DevelopNaoki/gascloud/auth/internal/config"
+	"github.com/DevelopNaoki/gascloud/auth/internal/handler"
 	"github.com/DevelopNaoki/gascloud/auth/internal/repository"
 	"github.com/spf13/cobra"
 
@@ -18,21 +19,26 @@ var RootCmd = &cobra.Command{
 	Use:   "gascloud-auth",
 	Short: "gascloud authorized api server",
 	RunE: func(cmd *cobra.Command, args []string) error {
+		// parse to struct and validate configuration
 		c, err := config.LoadConfigFile(confpath)
 		if err != nil {
 			return err
 		}
 
+		// initialize database and share connection
 		db, err := repository.ConnectionDB(c.DB)
 		if err != nil {
 			return err
 		}
-		fmt.Printf("%v", db)
+		conn := &handler.Handler{DB: db}
 
+		// setup and run the api server
 		e := echo.New()
 
 		e.Use(middleware.Logger())
 		e.Use(middleware.Recover())
+
+		e.POST("/account/login", conn.Login)
 
 		e.Logger.Fatal(e.Start(c.API.Address + ":" + strconv.Itoa(c.API.Port)))
 
