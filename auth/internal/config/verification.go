@@ -14,12 +14,12 @@ func VerificationConfigs(config model.Config) (err error) {
 	if config.API.Address == "" {
 		config.API.Address = "0.0.0.0"
 	} else if valid := isValidIP(config.API.Address); valid == "Invalid" {
-		err = fmt.Errorf("%s, api: invalid address", err.Error())
+		err = fmt.Errorf("api: invalid address")
 	}
 	// - Port
 	if config.API.Port == 0 {
 		config.API.Port = 80
-	} else if config.API.Port < 1 && config.API.Port > 65535 {
+	} else if config.API.Port < 1 || config.API.Port > 65535 {
 		err = fmt.Errorf("%s, api: invalid port number", err.Error())
 	}
 	// - Prefix

@@ -9,10 +9,8 @@ import (
 )
 
 func LoadConfigFile(path string) (config model.Config, err error) {
-	var f []byte
-
 	// Open
-	f, err = os.ReadFile(path)
+	f, err := os.ReadFile(path)
 	if err != nil {
 		return config, err
 	}

@@ -14,13 +14,13 @@ import (
 	"github.com/labstack/echo/middleware"
 )
 
-var confpath string
+var configPath string
 var RootCmd = &cobra.Command{
 	Use:   "gascloud-auth",
 	Short: "gascloud authorized api server",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		// parse to struct and validate configuration
-		c, err := config.LoadConfigFile(confpath)
+		// parse to struct and validate configuration file
+		c, err := config.LoadConfigFile(configPath)
 		if err != nil {
 			return err
 		}
@@ -56,5 +56,5 @@ func main() {
 
 func init() {
 	cobra.OnInitialize()
-	RootCmd.Flags().StringVarP(&confpath, "config", "c", "", "Specify Config File Path")
+	RootCmd.Flags().StringVarP(&configPath, "config", "c", "", "Specify Config File Path")
 }
