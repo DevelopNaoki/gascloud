@@ -7,6 +7,7 @@ require github.com/goccy/go-yaml v1.11.3
 require (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
 	github.com/go-sql-driver/mysql v1.7.0 // indirect
+	github.com/harakeishi/gats v0.0.0-20230219034858-055bc915842a // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect

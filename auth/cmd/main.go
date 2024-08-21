@@ -49,9 +49,10 @@ var RootCmd = &cobra.Command{
 		api.GET("/health", handler.Health)
 		api.POST("/account/login", conn.Login)
 
-		apiAccount := api.Group("/account")
-		apiAccount.Use(middleware.JWT([]byte(conn.Secret)))
-		apiAccount.POST("/register", conn.Register)
+		accountG := api.Group("/account")
+		accountG.Use(middleware.JWT([]byte(conn.Secret)))
+		accountG.POST("/register", conn.Register)
+		accountG.GET("/show", conn.Show)
 
 		e.Logger.Fatal(e.Start(c.API.Address + ":" + strconv.Itoa(c.API.Port)))
 
