@@ -16,7 +16,7 @@ func (u *UUID) GormDataType() string {
 }
 
 func (u *UUID) GormDBDataType(db *gorm.DB, field *schema.Field) string {
-	return "binary"
+	return "binary(16)"
 }
 
 func (u *UUID) Scan(value any) (err error) {

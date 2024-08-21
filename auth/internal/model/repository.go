@@ -8,7 +8,7 @@ import (
 )
 
 type Common struct {
-	ID        UUID `gorm:"primaryKey;type:binary(16);<-:create"`
+	ID        UUID `gorm:"primaryKey;type:bynary(16);<-:create"`
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
@@ -16,13 +16,14 @@ type Common struct {
 // If you include the Common structure and create a new function BeforeCreate,
 // this process is overridden, so the following process must be added to the newly created function.
 func (c *Common) BeforeCreate(db *gorm.DB) (err error) {
-	c.ID = UUID(uuid.Must(uuid.NewV7()))
+	uid := uuid.Must(uuid.NewV7())
+	c.ID = UUID(uid)
 	return
 }
 
 type Account struct {
 	Common
-	Name        string `gorm:"unique"`
+	Name        string `gorm:"not null;unique"`
 	Passwd      string `gorm:"not null"`
 	Description string
 	IsActive    bool `gorm:"default:true"`
@@ -30,7 +31,7 @@ type Account struct {
 
 type Role struct {
 	Common
-	Name        string `gorm:"unique"`
+	Name        string `gorm:"not null;unique"`
 	Description string
 	IsActive    bool `gorm:"default:true"`
 }

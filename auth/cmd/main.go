@@ -26,7 +26,7 @@ var RootCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		fmt.Printf("   complete\n")
+		fmt.Printf("complete\n")
 
 		// initialize database and share connection
 		fmt.Printf("connecting database...")
@@ -34,7 +34,7 @@ var RootCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		fmt.Printf("   complete\n")
+		fmt.Printf("complete\n")
 		conn := &handler.Handler{DB: db, Secret: c.API.Secret}
 		db.AutoMigrate(&model.Account{}, &model.Role{}, &model.RoleBind{}, &model.Permission{}, &model.PermissionBind{}, &model.ServiceCatalog{})
 		fmt.Printf("initialize database success\n")
@@ -47,8 +47,11 @@ var RootCmd = &cobra.Command{
 
 		api := e.Group(c.API.Prefix)
 		api.GET("/health", handler.Health)
-		//api.GET("/account/login", conn.Login)
 		api.POST("/account/login", conn.Login)
+
+		apiAccount := api.Group("/account")
+		apiAccount.Use(middleware.JWT([]byte(conn.Secret)))
+		apiAccount.POST("/register", conn.Register)
 
 		e.Logger.Fatal(e.Start(c.API.Address + ":" + strconv.Itoa(c.API.Port)))
 
