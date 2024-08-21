@@ -28,6 +28,10 @@ func VerificationConfigs(config model.Config) (err error) {
 	} else if !strings.HasPrefix(config.API.Prefix, "/") || strings.HasSuffix(config.API.Prefix, "/") {
 		err = fmt.Errorf("%s, api: invalid prefix", err.Error())
 	}
+	// - Secret
+	if config.API.Secret == "" {
+		err = fmt.Errorf("%s, api: reqired secret", err.Error())
+	}
 
 	// DBConfig
 	// - Driver

@@ -9,6 +9,7 @@ type APIConfig struct {
 	Address string `yaml:"bind-address"`
 	Port    int    `yaml:"bind-port"`
 	Prefix  string `yaml:"prefix"`
+	Secret  string `yaml:"secret"`
 }
 
 type DBConfig struct {
