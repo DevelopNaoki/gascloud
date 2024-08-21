@@ -20,9 +20,10 @@ type Handler struct {
 
 func (conn *Handler) Login(c echo.Context) error {
 	// User Search
-	var account model.Account
-
-	err := conn.DB.First(&account, c.FormValue("name")).Error
+	account := &model.Account{
+		Name: c.FormValue("name"),
+	}
+	err := conn.DB.First(&account).Error
 	if err != nil {
 		return c.JSON(http.StatusUnauthorized, &model.ErrMsg{Message: "Authentication Failure"})
 	}
@@ -57,7 +58,7 @@ func (conn *Handler) Register(c echo.Context) error {
 	account := &model.Account{
 		Name:        c.FormValue("name"),
 		Passwd:      string(hash),
-		Description: c.FormValue("Description"),
+		Description: c.FormValue("description"),
 	}
 	err = conn.DB.First(&account, c.FormValue("account")).Error
 	if err == nil {

@@ -7,7 +7,6 @@ import (
 
 	"github.com/DevelopNaoki/gascloud/auth/internal/config"
 	"github.com/DevelopNaoki/gascloud/auth/internal/handler"
-	"github.com/DevelopNaoki/gascloud/auth/internal/model"
 	"github.com/DevelopNaoki/gascloud/auth/internal/repository"
 	"github.com/spf13/cobra"
 
@@ -36,7 +35,7 @@ var RootCmd = &cobra.Command{
 		}
 		fmt.Printf("complete\n")
 		conn := &handler.Handler{DB: db, Secret: c.API.Secret}
-		db.AutoMigrate(&model.Account{}, &model.Role{}, &model.RoleBind{}, &model.Permission{}, &model.PermissionBind{}, &model.ServiceCatalog{})
+
 		fmt.Printf("initialize database success\n")
 
 		// setup and run the api server

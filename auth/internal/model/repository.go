@@ -26,6 +26,7 @@ type Account struct {
 	Name        string `gorm:"not null;unique"`
 	Passwd      string `gorm:"not null"`
 	Description string
+	IsAdmin     bool `gorm:"default:false"`
 	IsActive    bool `gorm:"default:true"`
 }
 
