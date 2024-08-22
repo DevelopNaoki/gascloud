@@ -35,7 +35,6 @@ var RootCmd = &cobra.Command{
 		}
 		fmt.Printf("complete\n")
 		conn := &handler.Handler{DB: db, Secret: c.API.Secret}
-
 		fmt.Printf("initialize database success\n")
 
 		// setup and run the api server
