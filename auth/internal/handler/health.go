@@ -1,11 +1,14 @@
 package handler
 
 import (
+	"github.com/gin-gonic/gin"
 	"net/http"
-
-	"github.com/labstack/echo"
 )
 
-func Health(c echo.Context) error {
-	return c.JSON(http.StatusOK, "ok")
+func HealthCheck(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{
+		"message": "health",
+	})
+	return
 }
+

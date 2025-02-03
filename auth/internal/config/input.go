@@ -1,11 +1,9 @@
 package config
 
 import (
-	"os"
-
-	"github.com/goccy/go-yaml"
-
 	"github.com/DevelopNaoki/gascloud/auth/internal/model"
+	"github.com/goccy/go-yaml"
+	"os"
 )
 
 func LoadConfigFile(path string) (config model.Config, err error) {
@@ -15,6 +13,16 @@ func LoadConfigFile(path string) (config model.Config, err error) {
 		return config, err
 	}
 
+	// Set Default
+	config = model.Config{
+		API: model.APIConfig{
+			Address: "0.0.0.0",
+			Port:    80,
+			Prefix:  "/",
+			Expire:  2,
+		},
+	}
+
 	// Parse
 	err = yaml.Unmarshal(f, &config)
 	if err != nil {
@@ -22,8 +30,7 @@ func LoadConfigFile(path string) (config model.Config, err error) {
 	}
 
 	// Verfication
-	err = VerificationConfigs(config)
-	if err != nil {
+	if config.Verification() != nil {
 		return config, err
 	}
 

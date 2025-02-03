@@ -9,7 +9,7 @@ import (
 )
 
 func ConnectionDB(c model.DBConfig) (db *gorm.DB, err error) {
-	dsn := c.User + ":" + c.Pass + "@tcp(" + c.Host + ":" + strconv.Itoa(c.Port) + ")/" + c.DBName + "?charset=utf8mb4&parseTime=True&loc=Local"
+	dsn := c.User + ":" + c.Passwd + "@tcp(" + c.Host + ":" + strconv.Itoa(c.Port) + ")/" + c.DBName + "?charset=utf8mb4&parseTime=True&loc=Local"
 	switch c.Driver {
 	case "mysql", "mariadb":
 		db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
@@ -17,7 +17,17 @@ func ConnectionDB(c model.DBConfig) (db *gorm.DB, err error) {
 			return db, err
 		}
 	}
-	db.AutoMigrate(&model.Account{}, &model.Role{}, &model.RoleBind{}, &model.Permission{}, &model.PermissionBind{}, &model.ServiceCatalog{})
+
+	db.AutoMigrate(
+		&model.Account{},
+		&model.GroupBind{},
+		&model.Group{},
+		&model.Session{},
+		&model.Role{},
+		&model.ServiceCatalog{},
+		&model.ServiceToken{},
+		&model.Categoly{},
+	)
 
 	err = initialData(db)
 	if err != nil {

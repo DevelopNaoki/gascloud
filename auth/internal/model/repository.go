@@ -8,7 +8,7 @@ import (
 )
 
 type Common struct {
-	ID        UUID `gorm:"primaryKey;type:bynary(16);<-:create"`
+	ID        UUID `gorm:"primaryKey;type:varchar(36);<-:create"`
 	CreatedAt time.Time
 	UpdatedAt time.Time
 }
@@ -25,33 +25,36 @@ type Account struct {
 	Common
 	Name        string `gorm:"not null;unique"`
 	Passwd      string `gorm:"not null"`
+	MailAddr    string
 	Description string
+	Role        UUID `gorm:"type:varchar(36)"`
 	IsActive    bool `gorm:"default:true"`
 }
 
-type Role struct {
+type GroupBind struct {
+	Common
+	Account UUID `gorm:"type:varchar(36)"`
+	Group   UUID `gorm:"type:varchar(36)"`
+}
+
+type Group struct {
 	Common
 	Name        string `gorm:"not null;unique"`
 	Description string
 	IsActive    bool `gorm:"default:true"`
 }
 
-type RoleBind struct {
+type Session struct {
 	Common
-	Account UUID `gorm:"not null;type:binary(16)"`
-	Role    UUID `gorm:"not null;type:binary(16)"`
+	Account   UUID   `gorm:"type:varchar(36)"`
+	Token     string `gorm:"type:varchar(36);unique"`
+	ExpiredAt time.Time
 }
 
-type Permission struct {
+type Role struct {
 	Common
-	Service UUID   `gorm:"not null;type:binary(16)"`
-	Action  string `gorm:"not null"`
-}
-
-type PermissionBind struct {
-	Common
-	Role    UUID `gorm:"not null;type:binary(16)"`
-	Service UUID `gorm:"not null;type:binary(16)"`
+	Name        string `gorm:"not null;unique"`
+	Description string
 }
 
 type ServiceCatalog struct {
@@ -60,4 +63,16 @@ type ServiceCatalog struct {
 	Endpoint    string `gorm:"unique"`
 	Description string
 	IsActive    bool `gorm:"default:true"`
+}
+
+type ServiceToken struct {
+	Common
+	Service     UUID `gorm:"type:varchar(36)"`
+	Description string
+	IsActive    bool `gorm:"default:true"`
+}
+
+type Categoly struct {
+	Common
+	Name string `gorm:"unique"`
 }
