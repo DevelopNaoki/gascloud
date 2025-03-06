@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"fmt"
 	"strconv"
 
 	"github.com/DevelopNaoki/gascloud/auth/internal/model"
@@ -8,17 +9,24 @@ import (
 	"gorm.io/gorm"
 )
 
-func ConnectionDB(c model.DBConfig) (db *gorm.DB, err error) {
-	dsn := c.User + ":" + c.Passwd + "@tcp(" + c.Host + ":" + strconv.Itoa(c.Port) + ")/" + c.DBName + "?charset=utf8mb4&parseTime=True&loc=Local"
-	switch c.Driver {
+func ConnectionDB(conf model.DBConfig) (db *gorm.DB, err error) {
+	dsn := conf.User + ":" + conf.Passwd + "@tcp(" + conf.Host + ":" + strconv.Itoa(conf.Port) + ")/" + conf.DBName + "?charset=utf8mb4&parseTime=True&loc=Local"
+	switch conf.Driver {
 	case "mysql", "mariadb":
-		db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
+		db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{
+			PrepareStmt: true,
+		})
 		if err != nil {
 			return db, err
 		}
+	default:
+		return db, fmt.Errorf("%s is not supported", conf.Driver)
 	}
 
-	db.AutoMigrate(
+	if db == nil {
+		return db, fmt.Errorf("failed open database")
+	}
+	err = db.AutoMigrate(
 		&model.Account{},
 		&model.GroupBind{},
 		&model.Group{},
@@ -28,6 +36,9 @@ func ConnectionDB(c model.DBConfig) (db *gorm.DB, err error) {
 		&model.ServiceToken{},
 		&model.Categoly{},
 	)
+	if err != nil {
+		return db, err
+	}
 
 	err = initialData(db)
 	if err != nil {

@@ -5,50 +5,40 @@ import (
 	"time"
 
 	"github.com/DevelopNaoki/gascloud/auth/internal/model"
-	//"github.com/dgrijalva/jwt-go"
-	"github.com/google/uuid"
-	//"github.com/harakeishi/gats"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
-	"gorm.io/gorm"
 )
 
-type Handler struct {
-	DB        *gorm.DB
-	ExpiredAt time.Duration
-}
-
 func (conn *Handler) IssueToken(c *gin.Context) {
-	// Requet Parameter
 	var request struct {
 		Account string `json:"account" binding:"required"`
 		Passwd  string `json:"password" binding:"required"`
 	}
 
-	// Bind Request Parameter
 	if err := c.ShouldBindJSON(&request); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"message": "bad request"})
+		c.Abort()
 		return
 	}
 
-	// Account Search
 	account := &model.Account{
 		Name: request.Account,
 	}
-	err := conn.DB.First(&account).Error
+	err := conn.DB.Take(&account).Error
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, &model.ErrMsg{Message: "Authentication Failure"})
+		c.JSON(http.StatusUnauthorized, gin.H{"message": "authentication failure"})
+		c.Abort()
 		return
 	}
 
-	// Password Verification
 	err = bcrypt.CompareHashAndPassword([]byte(account.Passwd), []byte(request.Passwd))
 	if err != nil {
-		c.JSON(http.StatusUnauthorized, &model.ErrMsg{Message: "Authentication Failure"})
+		c.JSON(http.StatusUnauthorized, gin.H{"message": "authentication failure"})
+		c.Abort()
 		return
 	}
 
-	// search tokens
 	var sessions []model.Session
 	conn.DB.Where("expired_at > ? AND account = ?", time.Now(), account.ID).Find(&sessions)
 	if len(sessions) > 0 {
@@ -56,75 +46,89 @@ func (conn *Handler) IssueToken(c *gin.Context) {
 		return
 	}
 
-	now := time.Now()
-	token := uuid.New()
 	session := &model.Session{
-		Token:     token.String(),
+		Token:     uuid.New().String(),
 		Account:   account.ID,
-		ExpiredAt: now.Add(conn.ExpiredAt),
+		ExpiredAt: time.Now().Add(conn.ExpiredAt),
 	}
 
 	result := conn.DB.Create(&session)
 	if result.Error != nil {
-		c.JSON(http.StatusInternalServerError, &model.ErrMsg{Message: "Internal Server Error"})
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "internal server error"})
+		c.Abort()
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{"token": session.Token})
-	return
 }
 
-//	func (conn *Handler) Register(c *gin.Context) error {
-//		// Password Hashing
-//		hash, err := bcrypt.GenerateFromPassword([]byte(c.FormValue("passwd")), bcrypt.DefaultCost)
-//		if err != nil {
-//			return c.JSON(http.StatusInternalServerError, &model.ErrMsg{Message: "Password Hashing Failed"})
-//		}
-//
-//		// Search Account
-//		account := &model.Account{
-//			Name:        c.FormValue("name"),
-//			Passwd:      string(hash),
-//			Description: c.FormValue("description"),
-//		}
-//		err = conn.DB.First(&account, c.FormValue("account")).Error
-//		if err == nil {
-//			return c.JSON(http.StatusBadRequest, &model.ErrMsg{Message: "Account Already Exist"})
-//		}
-//
-//		// Register Account
-//		result := conn.DB.Create(&account)
-//		if result.Error != nil {
-//			return c.JSON(http.StatusInternalServerError, &model.ErrMsg{Message: "Account Register Failed"})
-//		}
-//
-//		return c.JSON(http.StatusOK, "ok")
-//	}
-func (conn *Handler) Show(c *gin.Context) {
-	// Requet Parameter
+func (conn *Handler) AccountRegister(c *gin.Context) {
 	var request struct {
-		Account string `json:"account" binding:"required"`
+		Account     string     `json:"account" binding:"required"`
+		Passwd      string     `json:"password" binding:"required"`
+		MailAddr    string     `json:"mail_address"`
+		Role        model.UUID `json:"role_id" binding:"required"`
+		Description string     `json:"description"`
 	}
 
-	var account model.Account
-	if c.MustGet("role").(string) == "admin" && request.Account != "" {
-		// Bind Request Parameter
-		if err := c.ShouldBindJSON(&request); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-			return
-		}
-		account.Name = request.Account
-	} else {
-		account.Name = c.MustGet("account").(string)
+	if err := c.ShouldBindJSON(&request); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "bad request"})
+		c.Abort()
+		return
 	}
 
-	// Account Search
-	err := conn.DB.First(&account).Error
+	hash, err := bcrypt.GenerateFromPassword(([]byte(request.Passwd)), bcrypt.DefaultCost)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, &model.ErrMsg{Message: "Failed To Retrieve Account Information"})
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "internal server error"})
+		c.Abort()
+		return
+	}
+
+	account := &model.Account{
+		Name:        request.Account,
+		Passwd:      string(hash),
+		MailAddr:    request.MailAddr,
+		Role:        request.Role,
+		Description: request.Description,
+	}
+
+	result := conn.DB.FirstOrCreate(&account, model.Account{Name: request.Account})
+	if result.RowsAffected == 0 {
+		c.JSON(http.StatusConflict, gin.H{"message": "already exists"})
+		c.Abort()
+		return
+	}
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "internal server error"})
+		c.Abort()
 		return
 	}
 
 	c.JSON(http.StatusOK, &account)
-	return
+}
+
+func (conn *Handler) AccountShow(c *gin.Context) {
+	account := &model.Account{
+		Name: c.MustGet("account").(string),
+	}
+
+	err := conn.DB.Take(&account).Error
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "internal server error"})
+		c.Abort()
+		return
+	}
+
+	c.JSON(http.StatusOK, &account)
+}
+
+func (conn *Handler) AccountList(c *gin.Context) {
+	var accounts []model.Account
+	result := conn.DB.Find(&accounts)
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"message": "internal server error"})
+		c.Abort()
+		return
+	}
+	c.JSON(http.StatusOK, &accounts)
 }

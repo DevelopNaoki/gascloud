@@ -7,13 +7,11 @@ import (
 )
 
 func LoadConfigFile(path string) (config model.Config, err error) {
-	// Open
 	f, err := os.ReadFile(path)
 	if err != nil {
 		return config, err
 	}
 
-	// Set Default
 	config = model.Config{
 		API: model.APIConfig{
 			Address: "0.0.0.0",
@@ -23,14 +21,13 @@ func LoadConfigFile(path string) (config model.Config, err error) {
 		},
 	}
 
-	// Parse
 	err = yaml.Unmarshal(f, &config)
 	if err != nil {
 		return config, err
 	}
 
-	// Verfication
-	if config.Verification() != nil {
+	err = config.Verification()
+	if err != nil {
 		return config, err
 	}
 

@@ -3,7 +3,8 @@ module github.com/DevelopNaoki/gascloud/auth
 go 1.23.5
 
 require (
-	github.com/dgrijalva/jwt-go v3.2.0+incompatible
+	entgo.io/ent v0.14.1
+	github.com/bradfitz/gomemcache v0.0.0-20230905024940-24af94b03874
 	github.com/gin-gonic/gin v1.10.0
 	github.com/goccy/go-yaml v1.15.15
 	github.com/google/uuid v1.6.0

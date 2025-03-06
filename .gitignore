@@ -1,3 +1,6 @@
 auth/main
+auth/build.sh
 auth/configs
 auth/configs/config.yaml
+auth/deploy
+auth/build

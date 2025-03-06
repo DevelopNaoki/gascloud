@@ -8,9 +8,9 @@ import (
 )
 
 type Common struct {
-	ID        UUID `gorm:"primaryKey;type:varchar(36);<-:create"`
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	ID        UUID      `gorm:"primaryKey;type:varchar(36);<-:create" json:"id"`
+	CreatedAt time.Time `json:"create_at"`
+	UpdatedAt time.Time `json:"update_at"`
 }
 
 // If you include the Common structure and create a new function BeforeCreate,
@@ -23,56 +23,56 @@ func (c *Common) BeforeCreate(db *gorm.DB) (err error) {
 
 type Account struct {
 	Common
-	Name        string `gorm:"not null;unique"`
-	Passwd      string `gorm:"not null"`
-	MailAddr    string
-	Description string
-	Role        UUID `gorm:"type:varchar(36)"`
-	IsActive    bool `gorm:"default:true"`
+	Name        string `gorm:"not null;unique" json:"account"`
+	Passwd      string `gorm:"not null" json:"-"`
+	MailAddr    string `json:"mail_address"`
+	Description string `json:"description"`
+	Role        UUID   `gorm:"type:varchar(36)" json:"role_id"`
+	IsActive    bool   `gorm:"default:true" json:"is_active"`
 }
 
 type GroupBind struct {
 	Common
-	Account UUID `gorm:"type:varchar(36)"`
-	Group   UUID `gorm:"type:varchar(36)"`
+	Account UUID `gorm:"type:varchar(36)" json:"account_id"`
+	Group   UUID `gorm:"type:varchar(36)" json:"group_id"`
 }
 
 type Group struct {
 	Common
-	Name        string `gorm:"not null;unique"`
-	Description string
-	IsActive    bool `gorm:"default:true"`
+	Name        string `gorm:"not null;unique" json:"group"`
+	Description string `json:"description"`
+	IsActive    bool   `gorm:"default:true" json:"is_active"`
 }
 
 type Session struct {
 	Common
-	Account   UUID   `gorm:"type:varchar(36)"`
-	Token     string `gorm:"type:varchar(36);unique"`
-	ExpiredAt time.Time
+	Account   UUID      `gorm:"type:varchar(36)" json:"account_id"`
+	Token     string    `gorm:"type:varchar(36);unique" json:"token"`
+	ExpiredAt time.Time `json:"expired_at"`
 }
 
 type Role struct {
 	Common
-	Name        string `gorm:"not null;unique"`
-	Description string
+	Name        string `gorm:"not null;unique" json:"role"`
+	Description string `json:"description"`
 }
 
 type ServiceCatalog struct {
 	Common
-	Name        string `gorm:"unique"`
-	Endpoint    string `gorm:"unique"`
-	Description string
-	IsActive    bool `gorm:"default:true"`
+	Name        string `gorm:"unique" json:"service_catalog"`
+	Endpoint    string `gorm:"unique" json:"endpoint"`
+	Description string `json:"description"`
+	IsActive    bool   `gorm:"default:true" json:"is_active"`
 }
 
 type ServiceToken struct {
 	Common
-	Service     UUID `gorm:"type:varchar(36)"`
-	Description string
-	IsActive    bool `gorm:"default:true"`
+	Service     UUID   `gorm:"type:varchar(36)" json:"service_id"`
+	Description string `json:"description"`
+	IsActive    bool   `gorm:"default:true" json:"is_active"`
 }
 
 type Categoly struct {
 	Common
-	Name string `gorm:"unique"`
+	Name string `gorm:"unique" json:"categoly"`
 }

@@ -3,12 +3,12 @@ package model
 import (
 	"fmt"
 	"net"
-	"strings"
 )
 
 type Config struct {
-	API APIConfig `yaml:"api"`
-	DB  DBConfig  `yaml:"database"`
+	API   APIConfig   `yaml:"api"`
+	Cache CacheConfig `yaml:"cache"`
+	DB    DBConfig    `yaml:"database"`
 }
 
 type APIConfig struct {
@@ -16,6 +16,12 @@ type APIConfig struct {
 	Port    int    `yaml:"bind-port"`
 	Prefix  string `yaml:"prefix"`
 	Expire  int    `yaml:"session-expire"` // Hour
+}
+
+type CacheConfig struct {
+	Driver string `yaml:"driver"`
+	Host   string `yaml:"host"`
+	Port   int    `yaml:"port"`
 }
 
 type DBConfig struct {
@@ -27,54 +33,78 @@ type DBConfig struct {
 	Passwd string `yaml:"password"`
 }
 
-func (config *Config) Verification() error {
-	// APIConfig
-	// - Address
-	if valid := isValidIP(config.API.Address); valid == "Invalid" {
-		return fmt.Errorf("api: invalid address")
+func (config *Config) Verification() (err error) {
+	err = config.API.Verification()
+	if err != nil {
+		return fmt.Errorf("api: %s", err.Error())
 	}
-	// - Port
-	if config.API.Port < 1 || config.API.Port > 65535 {
-		return fmt.Errorf("api: invalid port number")
+	err = config.Cache.Verification()
+	if err != nil {
+		return fmt.Errorf("cache: %s", err.Error())
 	}
-	// - Prefix
-	if !strings.HasPrefix(config.API.Prefix, "/") || strings.HasSuffix(config.API.Prefix, "/") {
-		return fmt.Errorf("api: invalid prefix")
+	err = config.DB.Verification()
+	if err != nil {
+		return fmt.Errorf("db: %s", err.Error())
 	}
+	return nil
+}
 
-	// DBConfig
-	// - Driver
-	switch config.DB.Driver {
+func (api *APIConfig) Verification() error {
+	if valid := isValidIP(api.Address); valid == "Invalid" {
+		return fmt.Errorf("invalid address")
+	}
+	if api.Port < 1 || api.Port > 65535 {
+		return fmt.Errorf("invalid port number")
+	}
+	return nil
+}
+
+func (cache *CacheConfig) Verification() error {
+	switch cache.Driver {
+	case "memcache", "memcached":
+		if cache.Port == 0 {
+			cache.Port = 11211
+		}
+	case "redis":
+		return fmt.Errorf("redis does not support")
+	default:
+		return fmt.Errorf("required valid driver")
+	}
+	if cache.Host == "" {
+		return fmt.Errorf("required cache host")
+	}
+	if cache.Port < 1 && cache.Port > 65535 {
+		return fmt.Errorf("invalid port number")
+	}
+	return nil
+}
+
+func (db *DBConfig) Verification() error {
+	switch db.Driver {
 	case "mysql", "mariadb":
-		if config.DB.Port == 0 {
-			config.DB.Port = 3306
+		if db.Port == 0 {
+			db.Port = 3306
 		}
 	case "postgres", "postgresql":
-		return fmt.Errorf("db: postgresql does not support")
+		return fmt.Errorf("postgresql does not support")
 	default:
-		return fmt.Errorf("db: required valid driver")
+		return fmt.Errorf("required valid driver")
 	}
-	// - Host
-	if config.DB.Host == "" {
-		return fmt.Errorf("db: required database host")
+	if db.Host == "" {
+		return fmt.Errorf("required database host")
 	}
-	// - Port
-	if config.DB.Port < 1 && config.DB.Port > 65535 {
-		return fmt.Errorf("db: invalid port number")
+	if db.Port < 1 && db.Port > 65535 {
+		return fmt.Errorf("invalid port number")
 	}
-	// - DBName
-	if config.DB.DBName == "" {
-		return fmt.Errorf("db: required database")
+	if db.DBName == "" {
+		return fmt.Errorf("required database")
 	}
-	// - User
-	if config.DB.User == "" {
-		return fmt.Errorf("db: required user")
+	if db.User == "" {
+		return fmt.Errorf("required user")
 	}
-	// - Pass
-	if config.DB.Passwd == "" {
-		return fmt.Errorf("db: required password")
+	if db.Passwd == "" {
+		return fmt.Errorf("required password")
 	}
-
 	return nil
 }
 

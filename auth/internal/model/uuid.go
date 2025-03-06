@@ -2,6 +2,7 @@ package model
 
 import (
 	"database/sql/driver"
+	"encoding/json"
 	"fmt"
 
 	"github.com/google/uuid"
@@ -20,12 +21,6 @@ func (u *UUID) GormDBDataType(db *gorm.DB, field *schema.Field) string {
 }
 
 func (u *UUID) Scan(value interface{}) (err error) {
-	//str, ok := value.(string)
-	//if !ok {
-	//	return fmt.Errorf("cannnot scan uuid")
-	//}
-	//parseUUID, err := uuid.Parse(str)
-	//*u = UUID(parseUUID)
 	switch v := value.(type) {
 	case string:
 		parsedUUID, err := uuid.Parse(v)
@@ -43,7 +38,6 @@ func (u *UUID) Scan(value interface{}) (err error) {
 		return fmt.Errorf("cannot scan uuid from type %T", value)
 	}
 	return nil
-	return
 }
 
 func (u UUID) Value() (str driver.Value, err error) {
@@ -52,4 +46,17 @@ func (u UUID) Value() (str driver.Value, err error) {
 
 func (u UUID) String() string {
 	return uuid.UUID(u).String()
+}
+
+func (u *UUID) MarshalJSON() ([]byte, error) {
+	return json.Marshal(u.String())
+}
+
+func (u *UUID) UnmarshalJSON(b []byte) error {
+	uid, err := uuid.Parse(string(b))
+	if err != nil {
+		return err
+	}
+	*u = UUID(uid)
+	return nil
 }

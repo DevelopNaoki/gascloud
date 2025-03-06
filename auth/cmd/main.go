@@ -6,9 +6,11 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/DevelopNaoki/gascloud/auth/internal/cache"
 	"github.com/DevelopNaoki/gascloud/auth/internal/config"
 	"github.com/DevelopNaoki/gascloud/auth/internal/handler"
 	"github.com/DevelopNaoki/gascloud/auth/internal/repository"
+	"github.com/DevelopNaoki/gascloud/auth/internal/route"
 	"github.com/spf13/cobra"
 
 	"github.com/gin-gonic/gin"
@@ -20,26 +22,30 @@ var RootCmd = &cobra.Command{
 	Short: "gascloud authorized api server",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// parse to struct and validate configuration file
-		c, err := config.LoadConfigFile(configPath)
+		conf, err := config.LoadConfigFile(configPath)
 		if err != nil {
 			return err
 		}
 
-		// initialize database and share connection
-		db, err := repository.ConnectionDB(c.DB)
+		// initialize database
+		db, err := repository.ConnectionDB(conf.DB)
 		if err != nil {
 			return err
 		}
-		conn := &handler.Handler{
-			DB:        db,
-			ExpiredAt: time.Duration(c.API.Expire) * time.Hour,
+
+		// connecting cache server
+		cacheClient, err := cache.NewCache(conf.Cache)
+		if err != nil {
+			return err
 		}
 
-		// setup and run the api server
+		// register db and chache connection
+		conn := handler.NewHandler(db, cacheClient, time.Duration(conf.API.Expire)*time.Hour)
+
 		gin.SetMode(gin.ReleaseMode)
 		g := gin.New()
 
-		// set custom log
+		// json format log
 		g.Use(gin.LoggerWithFormatter(func(param gin.LogFormatterParams) string {
 			return fmt.Sprintf("{\"datetime\":\"%v\", \"status\":\"%3d\", \"latency\":\"%v\", \"from\":\"%s\", \"method\":\"%s\", \"path\":%#v, \"error\":\"%s\"}\n",
 				param.TimeStamp.Format("2006-01-02 15:04:05"),
@@ -53,20 +59,11 @@ var RootCmd = &cobra.Command{
 		}))
 		g.Use(gin.Recovery())
 
-		api := g.Group(c.API.Prefix)
-		api.GET("/health", handler.HealthCheck)
+		// load routing
+		api := g.Group(conf.API.Prefix)
+		route.Root(api, conn)
 
-		api.POST("/token/new", conn.IssueToken)
-
-		accounts := g.Group("/account")
-		accounts.Use(conn.AuthMiddleware())
-
-		//accountG.Use(middleware.JWT([]byte(conn.Secret)))
-		//accountG.POST("/register", conn.Register)
-		accounts.GET("/show", conn.Show)
-
-		addr := c.API.Address + ":" + strconv.Itoa(c.API.Port)
-		g.Run(addr)
+		g.Run(conf.API.Address + ":" + strconv.Itoa(conf.API.Port))
 
 		return nil
 	},

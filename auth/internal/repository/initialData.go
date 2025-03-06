@@ -16,7 +16,6 @@ func initialData(db *gorm.DB) (err error) {
 		return err
 	}
 
-	// Register Default User
 	err = initialUser(db)
 	if err != nil {
 		return err
@@ -71,11 +70,6 @@ func initialUser(db *gorm.DB) error {
 }
 
 func initialRole(db *gorm.DB) error {
-	// search group name
-	adm_err := db.First(&model.Role{Name: "admin"}).Error
-	if adm_err == nil {
-		return nil
-	}
 	roles := []model.Role{
 		{
 			Name:        "admin",
@@ -90,10 +84,15 @@ func initialRole(db *gorm.DB) error {
 			Description: "readonly account",
 		},
 	}
-
-	result := db.Create(&roles)
-	if result.Error != nil {
-		return result.Error
+	for _, role := range roles {
+		err := db.Take(&role).Error
+		if err == nil {
+			continue
+		}
+		result := db.Create(&role)
+		if result.Error != nil {
+			return result.Error
+		}
 	}
 	return nil
 }
